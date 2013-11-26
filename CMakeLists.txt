@@ -8,13 +8,19 @@
 # We require a minimum of V2.8 of CMake
 cmake_minimum_required( VERSION 2.8 )
 
+message(${CMAKE_CURRENT_BINARY_DIR})
+
+set(LIBBASENAME "glew")
 # Project name (Will determine the output name)
-project( glew )
+project( ${LIBBASENAME})
 
 # Setup the version numbers for the release we're currently at
 set( LIB_VMAJOR 1 )
 set( LIB_VMINOR 10 )
 set( LIB_VPATCH  0 )
+
+
+option(GLEW_BUILD_INFO "Build the GLEW info programs" OFF)
 
 # Determine the pointer size to know what architecture we're targetting
 if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
@@ -60,7 +66,7 @@ elseif( MSVC )
 endif()
 
 # Build the library name from the project and databus width (pointer size)
-set( LIBNAME "${CMAKE_PROJECT_NAME}${PSIZE}" )
+set( LIBNAME "${LIBBASENAME}${PSIZE}" )
 
 # Include directories for all targets
 include_directories( "${PROJECT_SOURCE_DIR}/include" )
@@ -73,6 +79,8 @@ add_definitions( -DGLEW_NO_GLU )
 add_library( ${LIBNAME} SHARED
     "${PROJECT_SOURCE_DIR}/src/glew.c"
     "${PROJECT_SOURCE_DIR}/build/glew.rc" )
+
+set(GLEW_LIBRARY ${LIBNAME} PARENT_SCOPE)
 
 target_link_libraries( ${LIBNAME}
     ${MLIBS} )
@@ -115,6 +123,7 @@ install( TARGETS ${LIBNAME}mx ${LIBNAME}mxs
     ARCHIVE DESTINATION lib
     COMPONENT mx )
 
+if (GLEW_BUILD_INFO)
 # The glewinfo application
 add_executable( glewinfo
     "${PROJECT_SOURCE_DIR}/src/glewinfo.c"
@@ -140,6 +149,8 @@ target_link_libraries( visualinfo
 install( TARGETS visualinfo
     RUNTIME DESTINATION bin )
 
+endif()
+
 # Header files need to be included in the install!
 install( DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL
     DESTINATION include )
@@ -153,7 +164,7 @@ set( CPACK_PACKAGE_VERSION_MAJOR ${LIB_VMAJOR} )
 set( CPACK_PACKAGE_VERSION_MINOR ${LIB_VMINOR} )
 set( CPACK_PACKAGE_VERSION_PATCH ${LIB_VPATCH} )
 
-set( CPACK_PACKAGE_NAME "${CMAKE_PROJECT_NAME}${COMPILER}${DBG}" )
+set( CPACK_PACKAGE_NAME "${LIBBASENAME}${COMPILER}${DBG}" )
 
 # Do not move this include, it must be included after ALL CPack variables have
 # been defined
